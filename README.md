@@ -1,2 +1,2 @@
 # PycroMagnetics
-PycroMagnetics is a library in Python that provides 3D micromagnetic simulation. This package uses only cupy, which is a numpy-compatible array library accelerated by CUDA.
+PycroMagnetics is a library in Python that provides 3D micromagnetic simulation. This package uses only CuPy, which is a NumPy-compatible array library accelerated by CUDA.
