@@ -2,6 +2,7 @@ import cupy as np
 import math
 import copy
 import itertools
+import sys
 
 
 """
@@ -21,14 +22,48 @@ Hextx, Hexty, Hextz = 0, 0, 0 # [unit : Oe]
 T = 0 # [unit : K]
 """
 
+####################################################################
+# utils
+####################################################################
 
-def MatrixCrossProduct(a, b):
-  c = []
-  c.append(a[1]*b[2]-a[2]*b[1])
-  c.append(a[2]*b[0]-a[0]*b[2])
-  c.append(a[0]*b[1]-a[1]*b[0])
-  c = np.array(c)
-  return c
+def MatrixCrossProduct(Mat1, Mat2):
+    """
+    Returns the cross products of Mat1 and Mat2.
+    :param:
+        - A & B: 5D matrix with shape (3,1,nz,ny,nx).
+    :return: 
+        - 5D matrix with shape (3,1,nz,ny,nx).
+    """
+    Mat3 = np.zeros_like(Mat1)
+    Mat3[0] = Mat1[1]*Mat2[2]-Mat1[2]*Mat2[1]
+    Mat3[1] = Mat1[2]*Mat2[0]-Mat1[0]*Mat2[2]
+    Mat3[2] = Mat1[0]*Mat2[1]-Mat1[1]*Mat2[0]
+    return Mat3
+
+def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█'):
+    """
+    Call in a loop to create terminal progress bar
+    :params:
+        iteration   - Required  : current iteration (Int)
+        total       - Required  : total iterations (Int)
+        prefix      - Optional  : prefix string (Str)
+        suffix      - Optional  : suffix string (Str)
+        decimals    - Optional  : positive number of decimals in percent complete (Int)
+        length      - Optional  : character length of bar (Int)
+        fill        - Optional  : bar fill character (Str)
+    """
+    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
+    filledLength = int(length * iteration // total)
+    bar = fill * filledLength + '-' * (length - filledLength)
+    output = '\r%s |%s| %s%% %s' % (prefix, bar, percent, suffix)
+    sys.stdout.write(output + '\n')
+    # Print New Line on Complete
+    if iteration == total:
+        print(output, end = '\n')
+
+####################################################################
+#
+####################################################################
   
 class MagneticObject():
     def __init__(self, 
