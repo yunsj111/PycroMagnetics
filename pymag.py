@@ -30,9 +30,9 @@ def MatrixCrossProduct(Mat1, Mat2):
     """
     Returns the cross products of Mat1 and Mat2.
     :param:
-        - A & B: 5D matrix with shape (3,1,nz,ny,nx).
+        - Mat1 & Mat2 - Required  :  5D matrix with shape (3,1,nz,ny,nx).
     :return: 
-        - 5D matrix with shape (3,1,nz,ny,nx).
+        - Mat3                    :  5D matrix with shape (3,1,nz,ny,nx).
     """
     Mat3 = np.zeros_like(Mat1)
     Mat3[0] = Mat1[1]*Mat2[2]-Mat1[2]*Mat2[1]
@@ -62,14 +62,24 @@ def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, 
         print(output, end = '\n')
 
 ####################################################################
-#
+# magmetic object
 ####################################################################
   
 class MagneticObject():
+    """
+    Magnetic object class.
+    """
     def __init__(self, 
                  Lx=100*10**-7, Ly=100*10**-7, Lz=5*10**-7, 
                  nx=100, ny=100, nz=5, 
                  PBCx=False, PBCy=False, PBCz=False):
+        """
+        Initialize a magnetic object.
+        :params:
+            Lx, Ly, Ly          - Required  : length of the magnetic object along x,y,z axis [unit: cm] (float)
+            nx, ny, nz          - Required  : number of discrete elements along x,y,z axis (int)
+            PBCx, PBCy, PBCz    - Optional  : Periodic boundary condition (bool)
+        """
         
         # Real size factor
         self.Lx = Lx
@@ -95,6 +105,19 @@ class MagneticObject():
         self.mask = np.zeros(shape=(self.nz, self.ny, self.nx))
         
     def generateMask(self):
+        """
+        Seperate self.mask to self.mask_face and self.mask_edge.
+        :properties:
+            self.mask      : mask of the magnetic object
+            self.mask_zp   : -z side edge compoment of the mask
+            self.mask_zm   : +z side edge component of the mask
+            self.mask_yp   : -y side edge component of the mask
+            self.mask_ym   : +y side edge component of the mask
+            self.mask_xp   : -x side edge component of the mask
+            self.mask_xm   : +x side edge component of the mask
+            self.mask_edge : total edge component of the mask
+            self.mask_face : face component of the mask
+        """
         self.mask_zp = np.roll(self.mask, shift=+1, axis=0)
         self.mask_zm = np.roll(self.mask, shift=-1, axis=0)
         self.mask_yp = np.roll(self.mask, shift=+1, axis=1)
@@ -120,12 +143,24 @@ class MagneticObject():
         self.mask_face = self.mask.astype(bool) & ~self.mask_edge
         
     def clone(self):
+        """
+        Clone the magnetic object.
+        """
         return copy.deepcopy(self)
     
     def setCylindricalMask(self, 
                            center_x=50*10**-7, center_y=50*10**-7, center_z=2.5*10**-7, 
                            radius_x=40*10**-7, radius_y=40*10**-7, 
                            angle=0, height=4*10**-7):
+        """
+        Generate a magnetic object with ellipsoidal disk shape.
+        :params:
+            center_x, center_y, center_z   - Required  : central position of the mask [unit: cm] (float)
+            radius_x                       - Required  : first axis radius [unit: cm] (float)
+            radius_y                       - Required  : second axis radius [unit: cm] (float)
+            height                         - Required  : height of the mask [unit: cm] (float)
+            angle                          - Optional  : rotation angle [unit: deg] (float)
+        """
         self.center_x = center_x
         self.center_y = center_y
         self.center_z = center_z
@@ -151,6 +186,10 @@ class MagneticObject():
                 self.mask[k] = dist_from_center < 1
                 
         self.generateMask()
+
+####################################################################
+# Ferromatnet
+####################################################################
 
 class Ferromagnet(MagneticObject):
     def __init__(self, **kwargs):
