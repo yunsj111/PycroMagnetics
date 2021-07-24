@@ -192,7 +192,46 @@ class MagneticObject():
 ####################################################################
 
 class Ferromagnet(MagneticObject):
+    """
+    Ferromagnet class.
+    """
     def __init__(self, **kwargs):
+        """
+        Initialize a ferromagnet object.
+        In this stage, the mask of the ferromagnet is not defined.
+        In order to generate the mask of the ferromagnet, you should use a mask generating method, for example set setCylindricalMask
+        :example:
+            # define a ferromaget instance
+            m1 = Ferromagnet(Lx=50*10**-7, 
+                             Ly=50*10**-7, 
+                             Lz=50*10**-7, 
+                             nx=50, 
+                             ny=50, 
+                             nz=50)
+
+            # define a mask of the instance
+            m1.setCylindricalMask(center_x=10*10**-7, 
+                                  center_y=10*10**-7, 
+                                  center_z=25*10**-7, 
+                                  radius_x=4*10**-7, 
+                                  radius_y=4*10**-7, 
+                                  height=10*10**-7,
+                                  angle=0)
+
+            # define magnetic properties
+            m1.Ms = 1080 # [unit : emu / cc]
+            m1.Aex = 1.5*10**-6 # [unit : erg / cm]
+            m1.gamma = 1.76*10**7 # [unit : Oe^-1 s^-1]
+            m1.alpha = 10 # [unit : dimensionless]
+            m1.Ku = 8.0*10**6 # [unit : erg / cc]
+            m1.thetaK = 0 # [unit : deg]
+            m1.phiK = 0 # [unit : deg]
+            m1.DDMI = 3.5 # [unit : erg / cm^2]
+            m1.Temp = 300 # [unit : K]
+
+            # set magnetization direction
+            m1.setUniformMagnetization(thetaM0=0, phiM0=0)
+        """
         super(Ferromagnet, self).__init__(**kwargs)
 
     # Saturation magnetization
@@ -202,6 +241,10 @@ class Ferromagnet(MagneticObject):
 
     @Ms.setter
     def Ms(self, value):
+        """
+        Set a property `saturation magnetization` [unit: emu/cc].
+        The the property is only applied to the mask of the instance
+        """
         self.__Ms = value*self.mask
 
     # Exchagne stiffness
@@ -211,6 +254,10 @@ class Ferromagnet(MagneticObject):
 
     @Aex.setter
     def Aex(self, value):
+        """
+        Set a property `exchange stiffnet` [unit: erg/cc].
+        The the property is only applied to the mask of the instance
+        """
         self.__Aex = value*self.mask
 
     # Gyromagnetic ratio
@@ -220,6 +267,10 @@ class Ferromagnet(MagneticObject):
 
     @gamma.setter
     def gamma(self, value):
+        """
+        Set a property `gyromagnetic ratio` [unit : Oe^-1 s^-1].
+        The the property is only applied to the mask of the instance
+        """
         self.__gamma = value*self.mask
 
     # Damping constant
@@ -229,6 +280,10 @@ class Ferromagnet(MagneticObject):
 
     @alpha.setter
     def alpha(self, value):
+        """
+        Set a property `damping constant` [unit : dimensionless].
+        The the property is only applied to the mask of the instance
+        """
         self.__alpha = value*self.mask
 
     # DMI
@@ -238,6 +293,10 @@ class Ferromagnet(MagneticObject):
 
     @DDMI.setter
     def DDMI(self, value):
+        """
+        Set a property `DMI constant` [unit : erg / cm^2].
+        The the property is only applied to the mask of the instance
+        """
         self.__DDMI = value*self.mask
 
     # Uniaxial anisotropy
@@ -247,6 +306,10 @@ class Ferromagnet(MagneticObject):
 
     @Ku.setter
     def Ku(self, value):
+        """
+        Set a property `uniaxial anisotropy energy density` [unit : erg / cc].
+        The the property is only applied to the mask of the instance
+        """
         self.__Ku = value*self.mask
 
     @property
@@ -255,6 +318,10 @@ class Ferromagnet(MagneticObject):
 
     @thetaK.setter
     def thetaK(self, value):
+        """
+        Set a property `polar angle of Ku axis` [unit : deg].
+        The the property is only applied to the mask of the instance
+        """
         self.__thetaK = value*self.mask
 
     @property
@@ -263,6 +330,10 @@ class Ferromagnet(MagneticObject):
 
     @phiK.setter
     def phiK(self, value):
+        """
+        Set a property `azimuth angle of Ku axis` [unit : deg].
+        The the property is only applied to the mask of the instance
+        """
         self.__phiK = value*self.mask
 
     # Temperature
@@ -272,11 +343,21 @@ class Ferromagnet(MagneticObject):
 
     @Temp.setter
     def Temp(self, value):
+        """
+        Set a property `Temperature` [unit : K].
+        The the property is only applied to the mask of the instance
+        """
         self.__Temp = value*self.mask
 
         
     # Set Magnetization
     def setUniformMagnetization(self, thetaM0=0, phiM0=0):
+        """
+        Set initial magnetization to a uniform one directional state.
+        :params:
+            thetaM0          - Required  : polar angle of the uniform magnetization [unit: deg] (float)
+            phiM0            - Required  : azimuthal angle of the uniform magnetization [unit: deg] (float)
+        """
         self.thetaM0 = thetaM0
         self.phiM0 = phiM0
 
@@ -292,6 +373,9 @@ class Ferromagnet(MagneticObject):
         self.mz[:] = self.mask*np.cos(thetaM0_)
 
     def setRandomMagnetization(self):
+        """
+        Set initial magnetization to a random state.
+        """
         self.thetaM0 = np.random.uniform(0, 180, size=self.mask.shape)
         self.phiM0 = np.random.uniform(0, 360, size=self.mask.shape)
         
@@ -306,6 +390,8 @@ class Ferromagnet(MagneticObject):
         self.my = self.mask*np.sin(thetaM0_)*np.sin(phiM0_)
         self.mz = self.mask*np.cos(thetaM0_)
 
+
+    # Merge and comcat
     def concat(self, ferromagnet, axis=0):
         f1 = self.clone()
         f2 = ferromagnet.clone()
