@@ -743,6 +743,19 @@ class Evolver():
                                        PBCz = self.magnet.PBCz)
         
         self.demagFactor.calDemagFactor()
+        
+        # Initialize External magnetic field
+        self.Hextx = 0
+        self.Hexty = 0
+        self.Hextz = 0
+
+    def setUniformExternalMagneticField(self, Hextx, Hexty, Hextz):
+        """
+        Set uniform external magnetic field.
+        """
+        self.hextx = Hextx
+        self.hexty = Hexty
+        self.hextz = Hextz
 
     def Huniaxialanisotropy(self):
         mx_ = self.magnet.mx
@@ -873,6 +886,11 @@ class Evolver():
         self.heffx_ = np.zeros(shape=self.magnet.mask.shape)
         self.heffy_ = np.zeros(shape=self.magnet.mask.shape)
         self.heffz_ = np.zeros(shape=self.magnet.mask.shape)
+
+        # Add hext
+        self.heffx_ += self.hextx
+        self.heffy_ += self.hexty
+        self.heffz_ += self.hextz
 
         # Add hu
         if self.uniaxial_anisotropy_field:
