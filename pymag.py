@@ -521,179 +521,189 @@ class DemagFactor():
         self.PBCz = PBCz
         
     def ff(self, r1, r2, r3):
-      exp = 10**-18
-      res = (r2/2)*(r3**2-r1**2)*np.arcsinh(r2/(np.sqrt(r1**2+r3**2)+exp))+\
-            (r3/2)*(r2**2-r1**2)*np.arcsinh(r3/(np.sqrt(r1**2+r2**2)+exp))-\
-            r1*r2*r3*np.arctan(r2*r3/(r1*np.sqrt(r1**2+r2**2+r3**2)+exp))+\
-            (1/6)*(2*r1**2-r2**2-r3**2)*np.sqrt(r1**2+r2**2+r3**2)
-      return res
+        exp = 10**-18
+        res = (r2/2)*(r3**2-r1**2)*np.arcsinh(r2/(np.sqrt(r1**2+r3**2)+exp))+\
+                (r3/2)*(r2**2-r1**2)*np.arcsinh(r3/(np.sqrt(r1**2+r2**2)+exp))-\
+                r1*r2*r3*np.arctan(r2*r3/(r1*np.sqrt(r1**2+r2**2+r3**2)+exp))+\
+                (1/6)*(2*r1**2-r2**2-r3**2)*np.sqrt(r1**2+r2**2+r3**2)
+        return res
 
     def gg(self, r1, r2, r3):
-      exp = 10**-18
-      res = r1*r2*r3*np.arcsinh(r3/(np.sqrt(r1**2+r2**2)+exp))+\
-            (r2/6)*(3*r3**2-r2**2)*np.arcsinh(r1/(np.sqrt(r2**2+r3**2)+exp))+\
-            (r1/6)*(3*r3**2-r1**2)*np.arcsinh(r2/(np.sqrt(r1**2+r3**2)+exp))-\
-            (r3**3/6)*np.arctan(r1*r2/(r3*np.sqrt(r1**2+r2**2+r3**2)+exp))-\
-            (r3*r2**2/2)*np.arctan(r1*r3/(r2*np.sqrt(r1**2+r2**2+r3**2)+exp))-\
-            (r3*r1**2/2)*np.arctan(r2*r3/(r1*np.sqrt(r1**2+r2**2+r3**2)+exp))-\
-            r1*r2*np.sqrt(r1**2+r2**2+r3**2)/3
-      return res
+        exp = 10**-18
+        res = r1*r2*r3*np.arcsinh(r3/(np.sqrt(r1**2+r2**2)+exp))+\
+                (r2/6)*(3*r3**2-r2**2)*np.arcsinh(r1/(np.sqrt(r2**2+r3**2)+exp))+\
+                (r1/6)*(3*r3**2-r1**2)*np.arcsinh(r2/(np.sqrt(r1**2+r3**2)+exp))-\
+                (r3**3/6)*np.arctan(r1*r2/(r3*np.sqrt(r1**2+r2**2+r3**2)+exp))-\
+                (r3*r2**2/2)*np.arctan(r1*r3/(r2*np.sqrt(r1**2+r2**2+r3**2)+exp))-\
+                (r3*r1**2/2)*np.arctan(r2*r3/(r1*np.sqrt(r1**2+r2**2+r3**2)+exp))-\
+                r1*r2*np.sqrt(r1**2+r2**2+r3**2)/3
+        return res
 
     def F2(self,X,Y,Z,dx,dy,dz):
-      return self.ff(X,Y,Z) - self.ff(X,0,Z) - self.ff(X,Y,0) + self.ff(X,0,0)
+        return self.ff(X,Y,Z) - self.ff(X,0,Z) - self.ff(X,Y,0) + self.ff(X,0,0)
 
     def F1(self,X,Y,Z,dx,dy,dz):
-      return self.F2(X,Y,Z,dx,dy,dz) - self.F2(X,Y-dy,Z,dx,dy,dz) - \
-             self.F2(X,Y,Z-dz,dx,dy,dz) + self.F2(X,Y-dy,Z-dz,dx,dy,dz)
+        return self.F2(X,Y,Z,dx,dy,dz) - self.F2(X,Y-dy,Z,dx,dy,dz) - \
+               self.F2(X,Y,Z-dz,dx,dy,dz) + self.F2(X,Y-dy,Z-dz,dx,dy,dz)
 
     def FF(self,X,Y,Z,dx,dy,dz):
-      return self.F1(X,Y+dy,Z+dz,dx,dy,dz) - self.F1(X,Y+dy,Z,dx,dy,dz) - \
-             self.F1(X,Y,Z+dz,dx,dy,dz) + self.F1(X,Y,Z,dx,dy,dz)
+        return self.F1(X,Y+dy,Z+dz,dx,dy,dz) - self.F1(X,Y+dy,Z,dx,dy,dz) - \
+               self.F1(X,Y,Z+dz,dx,dy,dz) + self.F1(X,Y,Z,dx,dy,dz)
 
     def G2(self,X,Y,Z,dx,dy,dz):
-      return self.gg(X,Y,Z) - self.gg(X,Y,0)
+        return self.gg(X,Y,Z) - self.gg(X,Y,0)
 
     def G1(self,X,Y,Z,dx,dy,dz):
-      return self.G2(X+dx,Y,Z+dz,dx,dy,dz) - self.G2(X+dx,Y,Z,dx,dy,dz) - \
-             self.G2(X,Y,Z+dz,dx,dy,dz) + self.G2(X,Y,Z,dx,dy,dz)
+        return self.G2(X+dx,Y,Z+dz,dx,dy,dz) - self.G2(X+dx,Y,Z,dx,dy,dz) - \
+               self.G2(X,Y,Z+dz,dx,dy,dz) + self.G2(X,Y,Z,dx,dy,dz)
 
     def GG(self,X,Y,Z,dx,dy,dz):
-      return self.G1(X,Y,Z,dx,dy,dz) - self.G1(X,Y-dy,Z,dx,dy,dz) - \
-             self.G1(X,Y,Z-dz,dx,dy,dz) + self.G1(X,Y-dy,Z-dz,dx,dy,dz)
+        return self.G1(X,Y,Z,dx,dy,dz) - self.G1(X,Y-dy,Z,dx,dy,dz) - \
+               self.G1(X,Y,Z-dz,dx,dy,dz) + self.G1(X,Y-dy,Z-dz,dx,dy,dz)
 
     def Nxx(self,X,Y,Z,dx,dy,dz):
-      return (1/(4*math.pi*dx*dy*dz)) * (2*self.FF(X,Y,Z,dx,dy,dz)-self.FF(X+dx,Y,Z,dx,dy,dz)-self.FF(X-dx,Y,Z,dx,dy,dz))
+        return (1/(4*math.pi*dx*dy*dz)) * (2*self.FF(X,Y,Z,dx,dy,dz)-self.FF(X+dx,Y,Z,dx,dy,dz)-self.FF(X-dx,Y,Z,dx,dy,dz))
     
     def Nyy(self,X,Y,Z,dx,dy,dz):
-      return self.Nxx(Y,X,Z,dy,dx,dz)
+        return self.Nxx(Y,X,Z,dy,dx,dz)
 
     def Nzz(self,X,Y,Z,dx,dy,dz):
-      return self.Nxx(Z,X,Y,dz,dx,dy)
+        return self.Nxx(Z,X,Y,dz,dx,dy)
 
     def Nxy(self,X,Y,Z,dx,dy,dz):
-      return (1/(4*math.pi*dx*dy*dz)) * (self.GG(X,Y,Z,dx,dy,dz)-self.GG(X-dx,Y,Z,dx,dy,dz)-self.GG(X,Y+dy,Z,dx,dy,dz)+self.GG(X-dx,Y+dy,Z,dx,dy,dz))
+        return (1/(4*math.pi*dx*dy*dz)) * (self.GG(X,Y,Z,dx,dy,dz)-self.GG(X-dx,Y,Z,dx,dy,dz)-self.GG(X,Y+dy,Z,dx,dy,dz)+self.GG(X-dx,Y+dy,Z,dx,dy,dz))
 
     def Nxz(self,X,Y,Z,dx,dy,dz):
-      return self.Nxy(X,Z,Y,dx,dz,dy)
+        return self.Nxy(X,Z,Y,dx,dz,dy)
 
     def Nyz(self,X,Y,Z,dx,dy,dz):
         return self.Nxy(Y,Z,X,dy,dz,dx)                       
     
     def calDemagFactor(self):
-      
-      prefactor = -4*math.pi
-                
-      dx = self.lcx
-      dy = self.lcy
-      dz = self.lcz
-      a1 = (np.array(range(2*self.nx-1)) - self.nx+1)*dx
-      a2 = (np.array(range(2*self.ny-1)) - self.ny+1)*dy
-      a3 = (np.array(range(2*self.nz-1)) - self.nz+1)*dz
+        """
+        Calculate demag factor.
+        """
+        prefactor = -4*math.pi
+                    
+        dx = self.lcx
+        dy = self.lcy
+        dz = self.lcz
+        a1 = (np.array(range(2*self.nx-1)) - self.nx+1)*dx
+        a2 = (np.array(range(2*self.ny-1)) - self.ny+1)*dy
+        a3 = (np.array(range(2*self.nz-1)) - self.nz+1)*dz
 
-      a3, a2, a1 = np.meshgrid(a3,a2,a1, sparse=False, indexing='ij')
+        a3, a2, a1 = np.meshgrid(a3,a2,a1, sparse=False, indexing='ij')
 
-      print('Start calculating demag factors')
-      Nxx_val = self.Nxx(a1,a2,a3,dx,dy,dz)
-      Nxy_val = self.Nxy(a1,a2,a3,dx,dy,dz)
-      Nxz_val = self.Nxz(a1,a2,a3,dx,dy,dz)
-      Nyy_val = self.Nyy(a1,a2,a3,dx,dy,dz)
-      Nyz_val = self.Nyz(a1,a2,a3,dx,dy,dz)
-      Nzz_val = self.Nzz(a1,a2,a3,dx,dy,dz)
-      print('End calculating demag factors')
+        print('Start calculating demag factors')
+        Nxx_val = self.Nxx(a1,a2,a3,dx,dy,dz)
+        Nxy_val = self.Nxy(a1,a2,a3,dx,dy,dz)
+        Nxz_val = self.Nxz(a1,a2,a3,dx,dy,dz)
+        Nyy_val = self.Nyy(a1,a2,a3,dx,dy,dz)
+        Nyz_val = self.Nyz(a1,a2,a3,dx,dy,dz)
+        Nzz_val = self.Nzz(a1,a2,a3,dx,dy,dz)
+        print('End calculating demag factors')
 
-      self.Ntotxx = prefactor*Nxx_val
-      self.Ntotxy = prefactor*Nxy_val
-      self.Ntotxz = prefactor*Nxz_val
-      self.Ntotyy = prefactor*Nyy_val
-      self.Ntotyz = prefactor*Nyz_val
-      self.Ntotzz = prefactor*Nzz_val
+        self.Ntotxx = prefactor*Nxx_val
+        self.Ntotxy = prefactor*Nxy_val
+        self.Ntotxz = prefactor*Nxz_val
+        self.Ntotyy = prefactor*Nyy_val
+        self.Ntotyz = prefactor*Nyz_val
+        self.Ntotzz = prefactor*Nzz_val
 
-      self.FNtotxx = np.fft.fftn(self.Ntotxx, axes=(0,1,2), norm=None)
-      self.FNtotxy = np.fft.fftn(self.Ntotxy, axes=(0,1,2), norm=None)
-      self.FNtotxz = np.fft.fftn(self.Ntotxz, axes=(0,1,2), norm=None)
-      self.FNtotyy = np.fft.fftn(self.Ntotyy, axes=(0,1,2), norm=None)
-      self.FNtotyz = np.fft.fftn(self.Ntotyz, axes=(0,1,2), norm=None)
-      self.FNtotzz = np.fft.fftn(self.Ntotzz, axes=(0,1,2), norm=None)
+        self.FNtotxx = np.fft.fftn(self.Ntotxx, axes=(0,1,2), norm=None)
+        self.FNtotxy = np.fft.fftn(self.Ntotxy, axes=(0,1,2), norm=None)
+        self.FNtotxz = np.fft.fftn(self.Ntotxz, axes=(0,1,2), norm=None)
+        self.FNtotyy = np.fft.fftn(self.Ntotyy, axes=(0,1,2), norm=None)
+        self.FNtotyz = np.fft.fftn(self.Ntotyz, axes=(0,1,2), norm=None)
+        self.FNtotzz = np.fft.fftn(self.Ntotzz, axes=(0,1,2), norm=None)
 
     def calDemagField(self):
-      Mx_ = self.magnet.mx * self.magnet.Ms
-      My_ = self.magnet.my * self.magnet.Ms
-      Mz_ = self.magnet.mz * self.magnet.Ms
+        """
+        Calculate demag field.
+        """
+        Mx_ = self.magnet.mx * self.magnet.Ms
+        My_ = self.magnet.my * self.magnet.Ms
+        Mz_ = self.magnet.mz * self.magnet.Ms
 
-      self.padMx = np.zeros(shape=(2*self.nz-1,2*self.ny-1,2*self.nx-1))
-      self.padMy = np.zeros(shape=(2*self.nz-1,2*self.ny-1,2*self.nx-1))
-      self.padMz = np.zeros(shape=(2*self.nz-1,2*self.ny-1,2*self.nx-1))
+        self.padMx = np.zeros(shape=(2*self.nz-1,2*self.ny-1,2*self.nx-1))
+        self.padMy = np.zeros(shape=(2*self.nz-1,2*self.ny-1,2*self.nx-1))
+        self.padMz = np.zeros(shape=(2*self.nz-1,2*self.ny-1,2*self.nx-1))
 
-      self.padMx[0:self.nz, 0:self.ny, 0:self.nx] = Mx_
-      self.padMy[0:self.nz, 0:self.ny, 0:self.nx] = My_
-      self.padMz[0:self.nz, 0:self.ny, 0:self.nx] = Mz_
+        self.padMx[0:self.nz, 0:self.ny, 0:self.nx] = Mx_
+        self.padMy[0:self.nz, 0:self.ny, 0:self.nx] = My_
+        self.padMz[0:self.nz, 0:self.ny, 0:self.nx] = Mz_
 
-      if self.PBCx:
-        self.padMx[0:self.nz, 0:self.ny, self.nx:] = Mx_[:,:,:-1]
-        self.padMy[0:self.nz, 0:self.ny, self.nx:] = My_[:,:,:-1]
-        self.padMz[0:self.nz, 0:self.ny, self.nx:] = Mz_[:,:,:-1]        
+        if self.PBCx:
+            self.padMx[0:self.nz, 0:self.ny, self.nx:] = Mx_[:,:,:-1]
+            self.padMy[0:self.nz, 0:self.ny, self.nx:] = My_[:,:,:-1]
+            self.padMz[0:self.nz, 0:self.ny, self.nx:] = Mz_[:,:,:-1]        
 
-      if self.PBCy:
-        self.padMx[0:self.nz, self.ny:, 0:self.nx] = Mx_[:,:-1,:]
-        self.padMy[0:self.nz, self.ny:, 0:self.nx] = My_[:,:-1,:]
-        self.padMz[0:self.nz, self.ny:, 0:self.nx] = Mz_[:,:-1,:]
+        if self.PBCy:
+            self.padMx[0:self.nz, self.ny:, 0:self.nx] = Mx_[:,:-1,:]
+            self.padMy[0:self.nz, self.ny:, 0:self.nx] = My_[:,:-1,:]
+            self.padMz[0:self.nz, self.ny:, 0:self.nx] = Mz_[:,:-1,:]
 
-      if self.PBCz:
-        self.padMx[self.nz:, 0:self.ny, 0:self.nx] = Mx_[:-1,:,:]
-        self.padMy[self.nz:, 0:self.ny, 0:self.nx] = My_[:-1,:,:]
-        self.padMz[self.nz:, 0:self.ny, 0:self.nx] = Mz_[:-1,:,:]
+        if self.PBCz:
+            self.padMx[self.nz:, 0:self.ny, 0:self.nx] = Mx_[:-1,:,:]
+            self.padMy[self.nz:, 0:self.ny, 0:self.nx] = My_[:-1,:,:]
+            self.padMz[self.nz:, 0:self.ny, 0:self.nx] = Mz_[:-1,:,:]
 
-      if self.PBCx & self.PBCy:
-        self.padMx[0:self.nz, self.ny:, self.nx:] = Mx_[:,:-1,:-1]
-        self.padMy[0:self.nz, self.ny:, self.nx:] = My_[:,:-1,:-1]
-        self.padMz[0:self.nz, self.ny:, self.nx:] = Mz_[:,:-1,:-1]
+        if self.PBCx & self.PBCy:
+            self.padMx[0:self.nz, self.ny:, self.nx:] = Mx_[:,:-1,:-1]
+            self.padMy[0:self.nz, self.ny:, self.nx:] = My_[:,:-1,:-1]
+            self.padMz[0:self.nz, self.ny:, self.nx:] = Mz_[:,:-1,:-1]
 
-      if self.PBCy & self.PBCz:
-        self.padMx[self.nz:, self.ny:, 0:self.nx] = Mx_[:-1,:-1,:]
-        self.padMy[self.nz:, self.ny:, 0:self.nx] = My_[:-1,:-1,:]
-        self.padMz[self.nz:, self.ny:, 0:self.nx] = Mz_[:-1,:-1,:]
+        if self.PBCy & self.PBCz:
+            self.padMx[self.nz:, self.ny:, 0:self.nx] = Mx_[:-1,:-1,:]
+            self.padMy[self.nz:, self.ny:, 0:self.nx] = My_[:-1,:-1,:]
+            self.padMz[self.nz:, self.ny:, 0:self.nx] = Mz_[:-1,:-1,:]
 
-      if self.PBCz & self.PBCx:
-        self.padMx[self.nz:, 0:self.ny, self.nx:] = Mx_[:-1,:,:-1]
-        self.padMy[self.nz:, 0:self.ny, self.nx:] = My_[:-1,:,:-1]
-        self.padMz[self.nz:, 0:self.ny, self.nx:] = Mz_[:-1,:,:-1]
+        if self.PBCz & self.PBCx:
+            self.padMx[self.nz:, 0:self.ny, self.nx:] = Mx_[:-1,:,:-1]
+            self.padMy[self.nz:, 0:self.ny, self.nx:] = My_[:-1,:,:-1]
+            self.padMz[self.nz:, 0:self.ny, self.nx:] = Mz_[:-1,:,:-1]
 
-      if self.PBCx & self.PBCy & self.PBCz:
-        self.padMx[self.nz:, self.ny:, self.nx:] = Mx_[:-1,:-1,:-1]
-        self.padMy[self.nz:, self.ny:, self.nx:] = My_[:-1,:-1,:-1]
-        self.padMz[self.nz:, self.ny:, self.nx:] = Mz_[:-1,:-1,:-1]
+        if self.PBCx & self.PBCy & self.PBCz:
+            self.padMx[self.nz:, self.ny:, self.nx:] = Mx_[:-1,:-1,:-1]
+            self.padMy[self.nz:, self.ny:, self.nx:] = My_[:-1,:-1,:-1]
+            self.padMz[self.nz:, self.ny:, self.nx:] = Mz_[:-1,:-1,:-1]
 
-      self.FpadMx = np.fft.fftn(self.padMx, axes=(0,1,2), norm=None)
-      self.FpadMy = np.fft.fftn(self.padMy, axes=(0,1,2), norm=None)
-      self.FpadMz = np.fft.fftn(self.padMz, axes=(0,1,2), norm=None)
+        self.FpadMx = np.fft.fftn(self.padMx, axes=(0,1,2), norm=None)
+        self.FpadMy = np.fft.fftn(self.padMy, axes=(0,1,2), norm=None)
+        self.FpadMz = np.fft.fftn(self.padMz, axes=(0,1,2), norm=None)
 
-      self.Hdemagx = np.real(np.fft.ifftn(self.FNtotxx*self.FpadMx + self.FNtotxy*self.FpadMy + self.FNtotxz*self.FpadMz, axes=(0,1,2), norm=None))
-      self.Hdemagy = np.real(np.fft.ifftn(self.FNtotxy*self.FpadMx + self.FNtotyy*self.FpadMy + self.FNtotyz*self.FpadMz, axes=(0,1,2), norm=None))
-      self.Hdemagz = np.real(np.fft.ifftn(self.FNtotxz*self.FpadMx + self.FNtotyz*self.FpadMy + self.FNtotzz*self.FpadMz, axes=(0,1,2), norm=None))
+        self.Hdemagx = np.real(np.fft.ifftn(self.FNtotxx*self.FpadMx + self.FNtotxy*self.FpadMy + self.FNtotxz*self.FpadMz, axes=(0,1,2), norm=None))
+        self.Hdemagy = np.real(np.fft.ifftn(self.FNtotxy*self.FpadMx + self.FNtotyy*self.FpadMy + self.FNtotyz*self.FpadMz, axes=(0,1,2), norm=None))
+        self.Hdemagz = np.real(np.fft.ifftn(self.FNtotxz*self.FpadMx + self.FNtotyz*self.FpadMy + self.FNtotzz*self.FpadMz, axes=(0,1,2), norm=None))
 
-      self.hdemagx = self.Hdemagx[self.nz-1:2*self.nz,self.ny-1:2*self.ny,self.nx-1:2*self.nx]
-      self.hdemagy = self.Hdemagy[self.nz-1:2*self.nz,self.ny-1:2*self.ny,self.nx-1:2*self.nx]
-      self.hdemagz = self.Hdemagz[self.nz-1:2*self.nz,self.ny-1:2*self.ny,self.nx-1:2*self.nx]
+        self.hdemagx = self.Hdemagx[self.nz-1:2*self.nz,self.ny-1:2*self.ny,self.nx-1:2*self.nx]
+        self.hdemagy = self.Hdemagy[self.nz-1:2*self.nz,self.ny-1:2*self.ny,self.nx-1:2*self.nx]
+        self.hdemagz = self.Hdemagz[self.nz-1:2*self.nz,self.ny-1:2*self.ny,self.nx-1:2*self.nx]
 
     def chech_Ntot(self):
-      Ms_ = np.abs(self.magnet.Ms).max()
-      for direction, thetaM0, phiM0 in [('x', 90, 0), ('y', 90, 90), ('z', 0, 0)]:
+        """
+        Check demag factor.
+        """
+        Ms_ = np.abs(self.magnet.Ms).max()
+        for direction, thetaM0, phiM0 in [('x', 90, 0), ('y', 90, 90), ('z', 0, 0)]:
 
-        self.magnet.setUniformMagnetization(thetaM0=thetaM0, phiM0=phiM0)
-        self.calDemagField()
+            self.magnet.setUniformMagnetization(thetaM0=thetaM0, phiM0=phiM0)
+            self.calDemagField()
+
+            Nx_ = sum((self.hdemagx*self.magnet.mask).flatten())/sum((self.magnet.mask).flatten()) / (4*math.pi*Ms_)
+            Ny_ = sum((self.hdemagy*self.magnet.mask).flatten())/sum((self.magnet.mask).flatten()) / (4*math.pi*Ms_)
+            Nz_ = sum((self.hdemagz*self.magnet.mask).flatten())/sum((self.magnet.mask).flatten()) / (4*math.pi*Ms_)
 
 
-        Nx_ = sum((self.hdemagx*self.magnet.mask).flatten())/sum((self.magnet.mask).flatten()) / (4*math.pi*Ms_)
-        Ny_ = sum((self.hdemagy*self.magnet.mask).flatten())/sum((self.magnet.mask).flatten()) / (4*math.pi*Ms_)
-        Nz_ = sum((self.hdemagz*self.magnet.mask).flatten())/sum((self.magnet.mask).flatten()) / (4*math.pi*Ms_)
+            print('Ms direction = {}'.format(direction), ' :::: [ Hdemagx/4piMs = {:.4f}, H_demagy/4piMs = {:.4f}, H_demagz/4piMs = {:.4f} ]'.format(
+            Nx_.tolist(),
+            Ny_.tolist(),
+            Nz_.tolist()))
 
+#############################################################################################################################################
+# demagnetizing factor
+#############################################################################################################################################
 
-
-        print('Ms direction = {}'.format(direction), ' :::: [ Hdemagx/4piMs = {:.4f}, H_demagy/4piMs = {:.4f}, H_demagz/4piMs = {:.4f} ]'.format(
-          Nx_.tolist(),
-          Ny_.tolist(),
-          Nz_.tolist()))
-        
 class Evolver():
     def __init__(self, magnet=None, tstep=10**-15, 
                  uniaxial_anisotropy_field=True,
@@ -953,8 +963,12 @@ class Evolver():
         dm = np.sqrt(self.dmx**2 + self.dmy**2 + self.dmz**2).flatten().max()
         self.tstep *= (ideal_dm/dm)
 
+#############################################################################################################################################
+# scheduler
+#############################################################################################################################################
+
 class scheduler():
-  def Hfunction(self, Hx_f = 0, Hy_f = 0, Hz_f = 0):
-    self.Hx_f = Hx_f
-    self.Hy_f = Hy_f
-    self.Hz_f = Hz_f
+    def Hfunction(self, Hx_f = 0, Hy_f = 0, Hz_f = 0):
+        self.Hx_f = Hx_f
+        self.Hy_f = Hy_f
+        self.Hz_f = Hz_f
