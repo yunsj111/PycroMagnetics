@@ -147,6 +147,35 @@ class MagneticObject():
         Clone the magnetic object.
         """
         return copy.deepcopy(self)
+
+    def intersect(self, obj):
+        """
+        Intersect another object, which overlap with the object, along an axis.
+        The intersect must be done before properties of the two objects is defined. 
+        :params:
+            obj      - Required  : another object.
+        """
+        f1 = self.clone()
+        f2 = obj.clone()
+        intersection = f1.mask * f2.mask
+        f1.mask = intersection
+        f1.generateMask()
+        return f1
+        
+    def union(self, obj):
+        """
+        Union another object, which overlap with the object, along an axis.
+        The union must be done before properties of the two objects is defined. 
+        :params:
+            obj      - Required  : another object.
+        """
+        f1 = self.clone()
+        f2 = obj.clone()
+        intersection = f1.mask * f2.mask
+        union = f1.mask + f2.mask - intersection
+        f1.mask = union
+        f1.generateMask()
+        return f1
     
     def setCylindricalMask(self, 
                            center_x=50*10**-7, center_y=50*10**-7, center_z=2.5*10**-7, 
@@ -233,6 +262,15 @@ class Ferromagnet(MagneticObject):
             m1.setUniformMagnetization(thetaM0=0, phiM0=0)
         """
         super(Ferromagnet, self).__init__(**kwargs)
+        self.Ms = 0 
+        self.Aex = 0
+        self.gamma = 0
+        self.alpha = 0
+        self.Ku = 0
+        self.thetaK = 0
+        self.phiK = 0
+        self.DDMI = 0
+        self.Temp = 0
 
     # Saturation magnetization
     @property
@@ -393,10 +431,16 @@ class Ferromagnet(MagneticObject):
 
     # Merge and comcat
     def concat(self, ferromagnet, axis=0):
+        """
+        Concatenate another ferromagnet object along an axis.
+        :params:
+            ferromagnet      - Required  : another ferromagnet object.
+            axis             - Required  : concatenate axis (z : 0, y: 1, x: 2).
+        """
         f1 = self.clone()
         f2 = ferromagnet.clone()
         f1.mask = np.concatenate((f1.mask, f2.mask), axis=axis)
-        f1.generateMask()        
+        f1.generateMask()
         f1.nz, f1.ny, f1.nx = f1.mask.shape
         f1.Ms = np.concatenate((f1.Ms, f2.Ms), axis=axis)
         f1.Aex = np.concatenate((f1.Aex, f2.Aex), axis=axis)
@@ -413,6 +457,11 @@ class Ferromagnet(MagneticObject):
         return f1
 
     def merge(self, ferromagnet):
+        """
+        Merge another ferromagnet object, which is isolated from the ferromagnet object, along an axis.
+        :params:
+            ferromagnet      - Required  : another ferromagnet object.
+        """
         f1 = self.clone()
         f2 = ferromagnet.clone()
         f1.mask += f2.mask
