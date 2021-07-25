@@ -709,6 +709,9 @@ class DemagFactor():
 #############################################################################################################################################
 
 class Evolver():
+    """
+    Evolver updates magnetization state of the magnetic object.
+    """
     def __init__(self, magnet=None, tstep=10**-15, 
                  uniaxial_anisotropy_field=True,
                  exchang_field=True,
@@ -720,6 +723,22 @@ class Evolver():
                  DLT_field=False,
                  warm_up=True,
                  random_state=42):
+        """
+        Initialize evolver
+        :params:
+            magnet                    - Required  : magnetic object of interest (object)
+            tstep                     - Required  : time step (float)
+            uniaxial_anisotropy_field - Required  : whether the system contains Ku or not (bool)
+            exchang_field             - Required  : whether the system contains Aex or not (bool)
+            DMI_field                 - Required  : whether the system contains DMI or not (bool)
+            demag_field               - Required  : whether the system contains demag or not (bool)
+            thermal_field             - Required  : whether the system contains thermal or not (bool)
+            external_field            - Required  : whether the system contains external or not (bool)
+            FLT_field                 - Required  : whether the system contains FLT or not (bool)
+            DLT_field                 - Required  : whether the system contains DLT or not (bool)
+            warm_up                   - Required  : whether the stage is for warm_up or not. if warm_up=True, precession is ignored (bool)
+            random_state              - Required  : random_state for thermal agitation field (int)
+        """
         self.magnet = magnet
         self.tstep = tstep
         self.time = 0
@@ -752,12 +771,17 @@ class Evolver():
     def setUniformExternalMagneticField(self, Hextx, Hexty, Hextz):
         """
         Set uniform external magnetic field.
+        :params:
+            Hextx, Hexty, Hextz  - Required  : external magnetic field.
         """
         self.hextx = Hextx
         self.hexty = Hexty
         self.hextz = Hextz
 
     def Huniaxialanisotropy(self):
+        """
+        Calculate uniaxial anisotropy field.
+        """
         mx_ = self.magnet.mx
         my_ = self.magnet.my
         mz_ = self.magnet.mz
@@ -784,6 +808,9 @@ class Evolver():
         self.huz = Hu_ * np.cos(thetaK_)
 
     def Hexchange(self):
+        """
+        Calculate exchange field.
+        """
         Aex_ = self.magnet.Aex
         Ms_ = self.magnet.Ms
         Hex_ = 2 * Aex_ / (Ms_ + 10**-100) * self.magnet.mask
@@ -823,12 +850,18 @@ class Evolver():
         self.hexz = hexz
 
     def Hdemag(self):
-      self.demagFactor.calDemagField()
-      self.hdemagx = self.demagFactor.hdemagx
-      self.hdemagy = self.demagFactor.hdemagy
-      self.hdemagz = self.demagFactor.hdemagz
+        """
+        Calculate demag field.
+        """
+        self.demagFactor.calDemagField()
+        self.hdemagx = self.demagFactor.hdemagx
+        self.hdemagy = self.demagFactor.hdemagy
+        self.hdemagz = self.demagFactor.hdemagz
 
     def Hthermal(self, random_state=42):
+        """
+        Calculate thermal agitation.
+        """
         T_ = self.magnet.Temp
         alpha_ = self.magnet.alpha
         gamma_ = self.magnet.gamma
@@ -846,6 +879,9 @@ class Evolver():
         self.hthz = np.random.randn(H_sigma.size).reshape(H_sigma.shape) * H_sigma
         
     def Hexchange_with_DMI(self):
+        """
+        Calculate exchange + DMI field. This method is currently under development.
+        """
         DDMI_ = self.magnet.DDMI
         Aex_ = self.magnet.Aex
         Ms_ = self.magnet.Ms
@@ -858,12 +894,21 @@ class Evolver():
         mz_ = self.magnet.mz
 
     def HDLT(self):
-      pass
+        """
+        Calculate damping-like spin-orbit torque field. This method is currently under development.
+        """
+        pass
 
     def HFLT(self):
-      pass
+        """
+        Calculate field-like spin-orbit torque  field. This method is currently under development.
+        """
+        pass
 
     def LLG(self, mx, my, mz, heffx, heffy, heffz):
+        """
+        LLG equation.
+        """
         m_ = np.array([[mx],[my],[mz]])
         heff_ = np.array([[heffx], [heffy], [heffz]])
         rk_ = - self.C1 * MatrixCrossProduct(m_, heff_) - self.C2 * MatrixCrossProduct(m_, MatrixCrossProduct(m_, heff_))
@@ -873,6 +918,10 @@ class Evolver():
         return rkx_, rky_, rkz_
 
     def LLG_warmup(self, mx, my, mz, heffx, heffy, heffz):
+        """
+        LLG equation without the precession term.
+        This equation is used for warm_up stage.
+        """
         m_ = np.array([[mx],[my],[mz]])
         heff_ = np.array([[heffx], [heffy], [heffz]])
         rk_ = - self.C2 * MatrixCrossProduct(m_, MatrixCrossProduct(m_, heff_))
@@ -882,15 +931,20 @@ class Evolver():
         return rkx_, rky_, rkz_
 
     def Heff(self):
+        """
+        Sum all magnetic fields.
+        """
+
         # Initialize heff
         self.heffx_ = np.zeros(shape=self.magnet.mask.shape)
         self.heffy_ = np.zeros(shape=self.magnet.mask.shape)
         self.heffz_ = np.zeros(shape=self.magnet.mask.shape)
 
         # Add hext
-        self.heffx_ += self.hextx
-        self.heffy_ += self.hexty
-        self.heffz_ += self.hextz
+        if self.external_field:
+            self.heffx_ += self.hextx
+            self.heffy_ += self.hexty
+            self.heffz_ += self.hextz
 
         # Add hu
         if self.uniaxial_anisotropy_field:
@@ -901,14 +955,14 @@ class Evolver():
         
         # Add hex
         if self.exchang_field:
-          if ~self.DMI_field:
-              self.Hexchange()
-          if self.DMI_field:
-              self.Hexchange_with_DMI()
+            if ~self.DMI_field:
+                self.Hexchange()
+            if self.DMI_field:
+                self.Hexchange_with_DMI()
 
-          self.heffx_ += self.hexx
-          self.heffy_ += self.hexy
-          self.heffz_ += self.hexz
+            self.heffx_ += self.hexx
+            self.heffy_ += self.hexy
+            self.heffz_ += self.hexz
       
 
         # Add hdemag
@@ -927,6 +981,9 @@ class Evolver():
 
 
     def cal4thRK(self, equation=None):
+        """
+        calculate llg equation by using 4th-order Runge-Kutta method.
+        """
         k1x_, k1y_, k1z_ = equation(self.magnet.mx,
                                     self.magnet.my,
                                     self.magnet.mz, 
@@ -960,6 +1017,9 @@ class Evolver():
         self.dmz = self.tstep * (k1z_ + 2*k2z_ + 2*k3z_ + k4z_)/6
 
     def evolve(self):
+        """
+        Update self.magnet.
+        """
         self.time += self.tstep
         
         self.Heff()
@@ -982,6 +1042,9 @@ class Evolver():
         self.demagFactor.magnet = self.magnet
 
     def cal_tstep(self, ideal_dm=0.01):
+        """
+        Calculate optimal time step for the next evolve.
+        """
         dm = np.sqrt(self.dmx**2 + self.dmy**2 + self.dmz**2).flatten().max()
         self.tstep *= (ideal_dm/dm)
 
