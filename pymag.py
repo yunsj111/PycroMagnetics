@@ -1048,6 +1048,15 @@ class Evolver():
         dm = np.sqrt(self.dmx**2 + self.dmy**2 + self.dmz**2).flatten().max()
         self.tstep *= (ideal_dm/dm)
 
+    def cal_stop(self, ideal_dm=1.0*10**-15):
+        """
+        Stop calculation were dm < ideal_dm.
+        """
+        dm = np.sqrt(self.dmx**2 + self.dmy**2 + self.dmz**2).flatten().max()
+        if dm < ideal_dm:
+            print('Equilibrium state is achieved now')
+            break
+
 #############################################################################################################################################
 # scheduler
 #############################################################################################################################################
