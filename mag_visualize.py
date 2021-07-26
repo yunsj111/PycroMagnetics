@@ -2,7 +2,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 def show_mask(magnet, figsize=(5,5), fontsize=100):
-    total_nz = m1.mask.shape[0]
+    total_nz = magnet.mask.shape[0]
     d1 = total_nz // 5
     d2 = total_nz % 5
     if d2!=0:
