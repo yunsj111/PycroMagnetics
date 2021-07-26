@@ -66,6 +66,14 @@ def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, 
     if iteration == total:
         print(output, end = '\n')
 
+    
+def is_space_the_same(obj1, obj2):
+    return (obj1.Lx == obj2.Lx) & \
+           (obj1.Ly == obj2.Ly) & \
+           (obj1.Lz == obj2.Lz) & \
+           (obj1.nx == obj2.nx) & \
+           (obj1.ny == obj2.ny) & \
+           (obj1.nz == obj2.nz)
 #############################################################################################################################################
 # magmetic object
 #############################################################################################################################################
@@ -153,13 +161,15 @@ class MagneticObject():
         """
         return copy.deepcopy(self)
 
-    def intersect(self, obj):
+    def intersection(self, obj):
         """
         Intersect another object, which overlap with the object, along an axis.
-        The intersect must be done before properties of the two objects is defined. 
+        The intersection must be done before properties of the two objects is defined. 
         :params:
             obj      - Required  : another object.
         """
+        if is_space_the_same(self, obj)==False:
+            raise ValueError("The space parameters of the two object are not the same.")
         f1 = self.clone()
         f2 = obj.clone()
         intersection = f1.mask * f2.mask
@@ -174,11 +184,29 @@ class MagneticObject():
         :params:
             obj      - Required  : another object.
         """
+        if is_space_the_same(self, obj)==False:
+            raise ValueError("The space parameters of the two object are not the same.")
         f1 = self.clone()
         f2 = obj.clone()
         intersection = f1.mask * f2.mask
         union = f1.mask + f2.mask - intersection
         f1.mask = union
+        f1.generateMask()
+        return f1
+    
+    def difference(self, obj):
+        """
+        Substract another object from the object.
+        The difference must be done before properties of the two objects is defined. 
+        :params:
+            obj      - Required  : another object.
+        """
+        if is_space_the_same(self, obj)==False:
+            raise ValueError("The space parameters of the two object are not the same.")
+        f1 = self.clone()
+        f2 = obj.clone()
+        intersection = f1.mask * f2.mask
+        f1.mask = f1.mask - intersection
         f1.generateMask()
         return f1
     
@@ -1048,14 +1076,14 @@ class Evolver():
         dm = np.sqrt(self.dmx**2 + self.dmy**2 + self.dmz**2).flatten().max()
         self.tstep *= (ideal_dm/dm)
 
-    def cal_stop(self, ideal_dm=1.0*10**-15):
-        """
-        Stop calculation were dm < ideal_dm.
-        """
-        dm = np.sqrt(self.dmx**2 + self.dmy**2 + self.dmz**2).flatten().max()
-        if dm < ideal_dm:
-            print('Equilibrium state is achieved now')
-            break
+#     def cal_stop(self, ideal_dm=1.0*10**-15):
+#         """
+#         Stop calculation were dm < ideal_dm.
+#         """
+#         dm = np.sqrt(self.dmx**2 + self.dmy**2 + self.dmz**2).flatten().max()
+#         if dm < ideal_dm:
+#             print('Equilibrium state is achieved now')
+#             break
 
 #############################################################################################################################################
 # scheduler
