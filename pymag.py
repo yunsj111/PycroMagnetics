@@ -210,6 +210,26 @@ class MagneticObject():
         f1.generateMask()
         return f1
     
+    def asign_material(self, mater):
+        """
+        Asign materials to the mask.
+        :params:
+            mater    - Required   : instance of PycroMagnetics.magmatlib.
+        """
+        self.Ms = mater.Ms
+        self.Aex = mater.Aex
+        self.gamma = mater.gamma
+        self.alpha = mater.alpha
+        self.Ku = mater.Ku
+        self.thetaK = mater.thetaK
+        self.phiK = mater.phiK
+        self.K1 = mater.K1
+        self.K2 = mater.K2
+        self.DDMI = mater.DDMI
+        self.Temp = mater.Temp
+
+    
+    
     def setCylindricalMask(self, 
                            center_x=50*10**-7, center_y=50*10**-7, center_z=2.5*10**-7, 
                            radius_x=40*10**-7, radius_y=40*10**-7, 
@@ -302,6 +322,8 @@ class Ferromagnet(MagneticObject):
         self.Ku = 0
         self.thetaK = 0
         self.phiK = 0
+        self.K1 = 0
+        self.K2 = 0
         self.DDMI = 0
         self.Temp = 0
 
@@ -407,6 +429,32 @@ class Ferromagnet(MagneticObject):
         """
         self.__phiK = value*self.mask
 
+        
+    # Uniaxial anisotropy
+    @property
+    def K1(self):
+        return self.__K1
+
+    @K1.setter
+    def K1(self, value):
+        """
+        Set a property `first cubic anisotropy energy density` [unit : erg / cc].
+        The the property is only applied to the mask of the instance
+        """
+        self.__K1 = value*self.mask
+        
+    @property
+    def K2(self):
+        return self.__K2
+
+    @K2.setter
+    def K2(self, value):
+        """
+        Set a property `second cubic anisotropy energy density` [unit : erg / cc].
+        The the property is only applied to the mask of the instance
+        """
+        self.__K2 = value*self.mask
+        
     # Temperature
     @property
     def Temp(self):
