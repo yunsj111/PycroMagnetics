@@ -67,13 +67,36 @@ def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, 
         print(output, end = '\n')
 
     
-def is_space_the_same(obj1, obj2):
+def are_space_the_same(obj1, obj2):
     return (obj1.Lx == obj2.Lx) & \
            (obj1.Ly == obj2.Ly) & \
            (obj1.Lz == obj2.Lz) & \
            (obj1.nx == obj2.nx) & \
            (obj1.ny == obj2.ny) & \
            (obj1.nz == obj2.nz)
+
+def are_overlapped(obj1, obj2):
+    f1 = obj1.clone()
+    f2 = obj2.clone()
+    intersection = f1.mask * f2.mask
+    area = intersection.sum().tolist()
+    return (area>0)
+
+def can_concatenated(obj1, obj2, axis=0):
+    f1 = obj1.clone()
+    f2 = obj2.clone()
+    are_the_same_spec_length = (round(f1.lcx, 16) == round(f2.lcx, 16)) & \
+                               (round(f1.lcy, 16) == round(f2.lcy, 16)) & \
+                               (round(f1.lcz, 16) == round(f2.lcz, 16))
+    if are_the_same_spec_length == False:
+        raise ValueError("The specific lenght of the two space are not the same.")
+    if axis==0:
+        return (f1.nx == f2.nx) & (f1.ny == f2.ny)
+    if axis==1:
+        return (f1.nz == f2.nz) & (f1.nx == f2.nx)
+    if axis==2:
+        return (f1.ny == f2.ny) & (f1.nz == f2.nz)
+    
 #############################################################################################################################################
 # magmetic object
 #############################################################################################################################################
@@ -168,7 +191,7 @@ class MagneticObject():
         :params:
             obj      - Required  : another object.
         """
-        if is_space_the_same(self, obj)==False:
+        if are_space_the_same(self, obj)==False:
             raise ValueError("The space parameters of the two object are not the same.")
         f1 = self.clone()
         f2 = obj.clone()
@@ -184,7 +207,7 @@ class MagneticObject():
         :params:
             obj      - Required  : another object.
         """
-        if is_space_the_same(self, obj)==False:
+        if are_space_the_same(self, obj)==False:
             raise ValueError("The space parameters of the two object are not the same.")
         f1 = self.clone()
         f2 = obj.clone()
@@ -201,7 +224,7 @@ class MagneticObject():
         :params:
             obj      - Required  : another object.
         """
-        if is_space_the_same(self, obj)==False:
+        if are_space_the_same(self, obj)==False:
             raise ValueError("The space parameters of the two object are not the same.")
         f1 = self.clone()
         f2 = obj.clone()
@@ -228,8 +251,6 @@ class MagneticObject():
         self.DDMI = mater.DDMI
         self.Temp = mater.Temp
 
-    
-    
     def setCylindricalMask(self, 
                            center_x=50*10**-7, center_y=50*10**-7, center_z=2.5*10**-7, 
                            radius_x=40*10**-7, radius_y=40*10**-7, 
@@ -520,6 +541,9 @@ class Ferromagnet(MagneticObject):
         """
         f1 = self.clone()
         f2 = ferromagnet.clone()
+        if can_concatenated(f1, f2, axis=axis)==False:
+            raise ValueError("The two object can`t be concatenated.")
+        
         if axis==0:
             f1.Lz = f1.Lz + f2.Lz
         if axis==1:
@@ -549,6 +573,10 @@ class Ferromagnet(MagneticObject):
         :params:
             ferromagnet      - Required  : another ferromagnet object.
         """
+        if are_space_the_same(self, ferromagnet)==False:
+            raise ValueError("The space parameters of the two object are not the same.")
+        if are_overlapped(self, ferromagnet)==True:
+            raise ValueError("The two masks are overlapped.")
         f1 = self.clone()
         f2 = ferromagnet.clone()
         f1.mask += f2.mask
