@@ -801,11 +801,12 @@ class DemagFactor():
 #             Nx_ = sum((self.hdemagx*self.magnet.mask).flatten())/sum((self.magnet.mask).flatten()) / (4*math.pi*Ms_)
 #             Ny_ = sum((self.hdemagy*self.magnet.mask).flatten())/sum((self.magnet.mask).flatten()) / (4*math.pi*Ms_)
 #             Nz_ = sum((self.hdemagz*self.magnet.mask).flatten())/sum((self.magnet.mask).flatten()) / (4*math.pi*Ms_)
-
+            
+            prefactorMs = 4*math.pi*Ms_
             mask_area = (self.magnet.mask).sum()
-            Nx_ = (self.hdemagx*self.magnet.mask).sum()/mask_area / (4*math.pi*Ms_)
-            Ny_ = (self.hdemagy*self.magnet.mask).sum()/mask_area / (4*math.pi*Ms_)
-            Nz_ = (self.hdemagz*self.magnet.mask).sum()/mask_area / (4*math.pi*Ms_)
+            Nx_ = (self.hdemagx*self.magnet.mask).sum()/mask_area / prefactorMs
+            Ny_ = (self.hdemagy*self.magnet.mask).sum()/mask_area / prefactorMs
+            Nz_ = (self.hdemagz*self.magnet.mask).sum()/mask_area / prefactorMs
 
             
             
@@ -875,9 +876,9 @@ class Evolver():
         self.demagFactor.calDemagFactor()
         
         # Initialize External magnetic field
-        self.Hextx = 0
-        self.Hexty = 0
-        self.Hextz = 0
+        self.hextx = 0
+        self.hexty = 0
+        self.hextz = 0
 
     def setUniformExternalMagneticField(self, Hextx, Hexty, Hextz):
         """
@@ -1051,10 +1052,11 @@ class Evolver():
 
         # Add hext
         if self.external_field:
-            self.heffx_ += self.Hextx
-            self.heffy_ += self.Hexty
-            self.heffz_ += self.Hextz
-
+            self.heffx_ += self.hextx
+            self.heffy_ += self.hexty
+            self.heffz_ += self.hextz
+            
+            
         # Add hu
         if self.uniaxial_anisotropy_field:
             self.Huniaxialanisotropy()
