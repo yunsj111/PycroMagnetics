@@ -97,7 +97,27 @@ def can_concatenated(obj1, obj2, axis=0):
         return (f1.nz == f2.nz) & (f1.nx == f2.nx)
     if axis==2:
         return (f1.ny == f2.ny) & (f1.nz == f2.nz)
+
     
+import csv
+
+class MagnetLogger():
+    """
+    mlogger = MagnetLogger('new.csv')
+    
+    mlogger(1,2,3,4,5)
+    
+    """
+    def __init__(self, path):
+        self.path = path
+        self.__call__('time (s)', 'dm', 'mean_mx', 'mean_my', 'mean_mz')
+    
+    def __call__(self, time=None, dm=None, mean_mx=None, mean_my=None, mean_mz=None):
+        f = open(self.path, 'a', newline='')
+        wr = csv.writer(f)
+        wr.writerow([time, dm, mean_mx, mean_my, mean_mz])
+        f.close()
+
 #############################################################################################################################################
 # magmetic object
 #############################################################################################################################################
@@ -311,7 +331,10 @@ class Ferromagnet(MagneticObject):
                              Lz=50*10**-7, 
                              nx=50, 
                              ny=50, 
-                             nz=50)
+                             nz=50,
+                             PBCx=False,
+                             PBCy=False,
+                             PBCz=False)
 
             # define a mask of the instance
             m1.setCylindricalMask(center_x=10*10**-7, 
