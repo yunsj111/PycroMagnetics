@@ -26,6 +26,7 @@ T = 0 # [unit : K]
 hbar = 1.05457266*10**-27  # [unit : erg s]
 echarge = 1.60217662*10-19 # [unit : A s]
 kB = 1.380648*10**-16  # [unit : erg / K]
+degree = math.pi/180
 
 #############################################################################################################################################
 # utils
@@ -62,9 +63,9 @@ def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, 
     bar = fill * filledLength + '-' * (length - filledLength)
     output = '\r%s |%s| %s%% %s' % (prefix, bar, percent, suffix)
     sys.stdout.write(output + '\n')
-    # Print New Line on Complete
-    if iteration == total:
-        print(output, end = '\n')
+#     # Print New Line on Complete
+#     if iteration == total:
+#         print(output, end = '\n')
 
     
 def are_space_the_same(obj1, obj2):
@@ -500,14 +501,14 @@ class Ferromagnet(MagneticObject):
         """
         self.thetaM0 = thetaM0
         self.phiM0 = phiM0
+        thetaM0_ = self.thetaM0*degree
+        phiM0_ = self.phiM0*degree
 
         self.mx = np.zeros(shape=(self.mask.shape))
         self.my = np.zeros(shape=(self.mask.shape))
         self.mz = np.zeros(shape=(self.mask.shape))
         
-        degree = math.pi/180
-        thetaM0_ = self.thetaM0*degree
-        phiM0_ = self.phiM0*degree
+        
         self.mx[:] = self.mask*np.sin(thetaM0_)*np.cos(phiM0_)
         self.my[:] = self.mask*np.sin(thetaM0_)*np.sin(phiM0_)
         self.mz[:] = self.mask*np.cos(thetaM0_)
@@ -518,14 +519,13 @@ class Ferromagnet(MagneticObject):
         """
         self.thetaM0 = np.random.uniform(0, 180, size=self.mask.shape)
         self.phiM0 = np.random.uniform(0, 360, size=self.mask.shape)
+        thetaM0_ = self.thetaM0*degree
+        phiM0_ = self.phiM0*degree
         
         self.mx = np.zeros(shape=(self.mask.shape))
         self.my = np.zeros(shape=(self.mask.shape))
         self.mz = np.zeros(shape=(self.mask.shape))
         
-        degree = math.pi/180
-        thetaM0_ = self.thetaM0*degree
-        phiM0_ = self.phiM0*degree
         self.mx = self.mask*np.sin(thetaM0_)*np.cos(phiM0_)
         self.my = self.mask*np.sin(thetaM0_)*np.sin(phiM0_)
         self.mz = self.mask*np.cos(thetaM0_)
@@ -798,11 +798,17 @@ class DemagFactor():
             self.magnet.setUniformMagnetization(thetaM0=thetaM0, phiM0=phiM0)
             self.calDemagField()
 
-            Nx_ = sum((self.hdemagx*self.magnet.mask).flatten())/sum((self.magnet.mask).flatten()) / (4*math.pi*Ms_)
-            Ny_ = sum((self.hdemagy*self.magnet.mask).flatten())/sum((self.magnet.mask).flatten()) / (4*math.pi*Ms_)
-            Nz_ = sum((self.hdemagz*self.magnet.mask).flatten())/sum((self.magnet.mask).flatten()) / (4*math.pi*Ms_)
+#             Nx_ = sum((self.hdemagx*self.magnet.mask).flatten())/sum((self.magnet.mask).flatten()) / (4*math.pi*Ms_)
+#             Ny_ = sum((self.hdemagy*self.magnet.mask).flatten())/sum((self.magnet.mask).flatten()) / (4*math.pi*Ms_)
+#             Nz_ = sum((self.hdemagz*self.magnet.mask).flatten())/sum((self.magnet.mask).flatten()) / (4*math.pi*Ms_)
 
+            mask_area = (self.magnet.mask).sum()
+            Nx_ = (self.hdemagx*self.magnet.mask).sum()/mask_area / (4*math.pi*Ms_)
+            Ny_ = (self.hdemagy*self.magnet.mask).sum()/mask_area / (4*math.pi*Ms_)
+            Nz_ = (self.hdemagz*self.magnet.mask).sum()/mask_area / (4*math.pi*Ms_)
 
+            
+            
             print('Ms direction = {}'.format(direction), ' :::: [ Hdemagx/4piMs = {:.4f}, H_demagy/4piMs = {:.4f}, H_demagz/4piMs = {:.4f} ]'.format(
             Nx_.tolist(),
             Ny_.tolist(),
@@ -849,6 +855,7 @@ class Evolver():
 
         self.uniaxial_anisotropy_field = uniaxial_anisotropy_field
         self.exchang_field = exchang_field
+        self.external_field = external_field
         self.DMI_field = DMI_field
         self.demag_field = demag_field
         self.thermal_field = thermal_field
@@ -891,8 +898,8 @@ class Evolver():
         mz_ = self.magnet.mz
 
         Ku_ = self.magnet.Ku
-        thetaK_ = self.magnet.thetaK
-        phiK_ = self.magnet.phiK
+        thetaK_ = self.magnet.thetaK*degree
+        phiK_ = self.magnet.phiK*degree
         
         Kux_ = Ku_*np.sin(thetaK_)*np.cos(phiK_)
         Kuy_ = Ku_*np.sin(thetaK_)*np.sin(phiK_)
@@ -904,9 +911,7 @@ class Evolver():
 
         Hu_ = Hux_ * mx_ + Huy_ * my_ + Huz_ * mz_
 
-        degree = math.pi/180
-        thetaK_ = thetaK_*degree
-        phiK_ = phiK_*degree
+        
         self.hux = Hu_ * np.sin(thetaK_)*np.cos(phiK_)
         self.huy = Hu_ * np.sin(thetaK_)*np.sin(phiK_)
         self.huz = Hu_ * np.cos(thetaK_)
@@ -1046,9 +1051,9 @@ class Evolver():
 
         # Add hext
         if self.external_field:
-            self.heffx_ += self.hextx
-            self.heffy_ += self.hexty
-            self.heffz_ += self.hextz
+            self.heffx_ += self.Hextx
+            self.heffy_ += self.Hexty
+            self.heffz_ += self.Hextz
 
         # Add hu
         if self.uniaxial_anisotropy_field:
@@ -1144,13 +1149,15 @@ class Evolver():
         self.magnet.mz /= norm
 
         self.demagFactor.magnet = self.magnet
+        
+        self.dm = np.sqrt(self.dmx**2 + self.dmy**2 + self.dmz**2).flatten().max().tolist()
 
     def cal_tstep(self, ideal_dm=0.01):
         """
         Calculate optimal time step for the next evolve.
         """
-        dm = np.sqrt(self.dmx**2 + self.dmy**2 + self.dmz**2).flatten().max()
-        self.tstep *= (ideal_dm/dm)
+        self.tstep *= (ideal_dm/self.dm)
+        self.tstep = self.tstep
 
 #     def cal_stop(self, ideal_dm=1.0*10**-15):
 #         """
