@@ -98,9 +98,14 @@ def can_concatenated(obj1, obj2, axis=0):
     if axis==2:
         return (f1.ny == f2.ny) & (f1.nz == f2.nz)
 
-    
-import csv
+# 디렉토리가 있는지 확인하고 없다면 생성하는 함수
+import os
+def make_path(path):
+    if not os.path.isdir(path):                                                           
+        os.mkdir(path)
+        
 
+import csv
 class MagnetLogger():
     """
     mlogger = MagnetLogger('new.csv')
@@ -108,8 +113,9 @@ class MagnetLogger():
     mlogger(1,2,3,4,5)
     
     """
-    def __init__(self, path):
-        self.path = path
+    def __init__(self, log_name):
+        make_path('./log')
+        self.path = './log/'+log_name+'.csv'
         self.__call__('time (s)', 'dm', 'mean_mx', 'mean_my', 'mean_mz')
     
     def __call__(self, time=None, dm=None, mean_mx=None, mean_my=None, mean_mz=None):
@@ -117,6 +123,18 @@ class MagnetLogger():
         wr = csv.writer(f)
         wr.writerow([time, dm, mean_mx, mean_my, mean_mz])
         f.close()
+
+import pickle
+
+def save_Evolver(evolver, evolver_name):
+    make_path('./evolver')
+    with open('./evolver/'+evolver_name+'.pkl', 'wb') as f:
+        pickle.dump(evolver, f)
+        
+def load_Evolver(evolver_name):
+    with open('./evolver/'+evolver_name+'.pkl', 'rb') as f:
+        evolver = pickle.load(f)
+    return evolver
 
 #############################################################################################################################################
 # magmetic object
