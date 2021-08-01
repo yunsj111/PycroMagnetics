@@ -101,7 +101,7 @@ def can_concatenated(obj1, obj2, axis=0):
 # 디렉토리가 있는지 확인하고 없다면 생성하는 함수
 import os
 def make_path(path):
-    if not os.path.isdir(path):                                                           
+    if not os.path.isdir(path):
         os.mkdir(path)
         
 
@@ -116,6 +116,10 @@ class MagnetLogger():
     def __init__(self, log_name):
         make_path('./log')
         self.path = './log/'+log_name+'.csv'
+        
+        if os.path.isdir(self.path):
+            os.remove(self.path)
+        
         self.__call__('time (s)', 'dm', 'mean_mx', 'mean_my', 'mean_mz')
     
     def __call__(self, time=None, dm=None, mean_mx=None, mean_my=None, mean_mz=None):
@@ -128,11 +132,15 @@ import pickle
 
 def save_Evolver(evolver, evolver_name):
     make_path('./evolver')
-    with open('./evolver/'+evolver_name+'.pkl', 'wb') as f:
+    save_dir = './evolver/'+evolver_name+'.pkl'
+    print('{} is saved at {}'.format(evolver_name, save_dir))
+    with open(save_dir, 'wb') as f:
         pickle.dump(evolver, f)
         
 def load_Evolver(evolver_name):
-    with open('./evolver/'+evolver_name+'.pkl', 'rb') as f:
+    load_dir = './evolver/'+evolver_name+'.pkl'
+    print('{} is loaded from {}'.format(evolver_name, load_dir))
+    with open(load_dir, 'rb') as f:
         evolver = pickle.load(f)
     return evolver
 
