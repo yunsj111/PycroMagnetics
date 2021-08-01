@@ -28,5 +28,15 @@ def show_MagProperties(mag_property, vmin=None, vmax=None,figsize=(5,5), fontsiz
     for i in range(total_nz):
         plt.subplot(d1,5,i+1)
         sns.heatmap(mag_property[i].tolist(), cmap='RdBu', vmin=vmin, vmax=vmax, cbar=True, square=True, yticklabels=False, xticklabels=False, cbar_kws={"shrink": shrink}).invert_yaxis()
-        plt.title('nz : {}/{}'.format(i,total_nz), fontdict={'size': fontsize})
+        plt.title('nz : {}/{}'.format(i+1,total_nz), fontdict={'size': fontsize})
+    plt.show()
+    
+    
+def show_MagProperties_arrow(arrow_x=None, arrow_y=None, figsize=50):
+    height, width = arrow_x.shape
+    height /= width 
+    height *= figsize
+    width = figsize
+    plt.figure(figsize=(width, height),)
+    plt.quiver(arrow_x.tolist(), arrow_y.tolist())
     plt.show()
