@@ -144,6 +144,35 @@ def load_Evolver(evolver_name):
         evolver = pickle.load(f)
     return evolver
 
+def is_conversion(x, criteria=0.1, min_iter=10):
+    """
+    Return the 1d array is conversion or not.
+    :params:
+        x              - Required  : array (Array)
+        criteria       - Optional  : conversion error criteria (float)
+        min_iter       - Optional  : receptive range (Int)
+    """
+    if len(data.shape)!=1:
+        raise ValueError('x should be 1d.')
+    
+    i = len(x) - 1
+    
+    if i > min_iter:
+        middle = min_iter//2
+        a = sum(x[i+1-min_iter:i-middle])
+        b = sum(x[i+1-middle:i])
+        conv_error = np.abs(a - b) / np.abs(b)
+    else:
+        conv_error = 100
+    
+    print('Conversion Error : {}'.format(conv_error))
+    
+    if conv_error<criteria:
+        res = True
+    else:
+        res = False
+    return res
+
 #############################################################################################################################################
 # magmetic object
 #############################################################################################################################################
