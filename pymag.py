@@ -127,6 +127,33 @@ class MagnetLogger():
         wr = csv.writer(f)
         wr.writerow([time, dm, mean_mx, mean_my, mean_mz])
         f.close()
+        
+    def load_log(self):
+        f = open(self.path, 'r')
+        rdr = csv.reader(f)
+        
+        times    = []
+        dms      = []
+        mean_mxs = []
+        mean_mys = [] 
+        mean_mzs = []
+        for line in rdr:
+            time_log, dm_log, mean_mx_log, mean_my_log, mean_mz_log = line
+            if dm_log!='dm':
+                time_log = float(time_log)
+                dm_log = float(dm_log)
+                mean_mx_log = float(mean_mx_log)
+                mean_my_log = float(mean_my_log)
+                mean_mz_log = float(mean_mz_log)
+                times.append(time_log)
+                dms.append(dm_log)
+                mean_mxs.append(mean_mx_log)
+                mean_mys.append(mean_my_log)
+                mean_mzs.append(mean_mz_log)
+            
+        f.close()
+        return times, dms, mean_mxs, mean_mys, mean_mzs
+    
 
 import pickle
 
@@ -152,7 +179,7 @@ def is_conversion(x, criteria=0.1, min_iter=10):
         criteria       - Optional  : conversion error criteria (float)
         min_iter       - Optional  : receptive range (Int)
     """
-    if len(data.shape)!=1:
+    if len(x.shape)!=1:
         raise ValueError('x should be 1d.')
     
     i = len(x) - 1

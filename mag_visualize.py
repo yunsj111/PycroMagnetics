@@ -38,5 +38,5 @@ def show_MagProperties_arrow(arrow_x=None, arrow_y=None, figsize=50):
     height *= figsize
     width = figsize
     plt.figure(figsize=(width, height),)
-    plt.quiver(arrow_x.tolist(), arrow_y.tolist())
+    plt.quiver(arrow_x.tolist(), arrow_y.tolist(), scale_units='xy')
     plt.show()
