@@ -208,12 +208,44 @@ class MagneticObject():
         self.mask_xp = np.roll(self.mask, shift=+1, axis=2)
         self.mask_xm = np.roll(self.mask, shift=-1, axis=2)
         
-        self.mask_zp = (self.mask - self.mask_zp)*self.mask
-        self.mask_zm = (self.mask - self.mask_zm)*self.mask
-        self.mask_yp = (self.mask - self.mask_yp)*self.mask
-        self.mask_ym = (self.mask - self.mask_ym)*self.mask
-        self.mask_xp = (self.mask - self.mask_xp)*self.mask
-        self.mask_xm = (self.mask - self.mask_xm)*self.mask
+        if self.PBCz==True:
+            self.mask_zp = (self.mask - self.mask_zp)*self.mask
+            self.mask_zm = (self.mask - self.mask_zm)*self.mask
+        elif self.PBCz==False:
+            mask_ = np.pad(self.mask, ((0,1),(0,0),(0,0)), 'constant', 
+                           constant_values=((0,0),(0,0),(0,0)))
+            mask_zp_ = np.roll(mask_, shift=+1, axis=0)
+            mask_zm_ = np.roll(mask_, shift=-1, axis=0)
+            mask_zp_ = (mask_ - mask_zp_)*mask_
+            mask_zm_ = (mask_ - mask_zm_)*mask_
+            self.mask_zp = mask_zp_[:-1,:,:]
+            self.mask_zm = mask_zm_[:-1,:,:]
+        
+        if self.PBCy==True:
+            self.mask_yp = (self.mask - self.mask_yp)*self.mask
+            self.mask_ym = (self.mask - self.mask_ym)*self.mask
+        elif self.PBCy==False:
+            mask_ = np.pad(self.mask, ((0,0),(0,1),(0,0)), 'constant', 
+                           constant_values=((0,0),(0,0),(0,0)))
+            mask_yp_ = np.roll(mask_, shift=+1, axis=1)
+            mask_ym_ = np.roll(mask_, shift=-1, axis=1)
+            mask_yp_ = (mask_ - mask_yp_)*mask_
+            mask_ym_ = (mask_ - mask_ym_)*mask_
+            self.mask_yp = mask_yp_[:,:-1,:]
+            self.mask_ym = mask_ym_[:,:-1,:]
+        
+        if self.PBCx==True:
+            self.mask_xp = (self.mask - self.mask_xp)*self.mask
+            self.mask_xm = (self.mask - self.mask_xm)*self.mask
+        elif self.PBCx==False:
+            mask_ = np.pad(self.mask, ((0,0),(0,0),(0,1)), 'constant', 
+                           constant_values=((0,0),(0,0),(0,0)))
+            mask_xp_ = np.roll(mask_, shift=+1, axis=2)
+            mask_xm_ = np.roll(mask_, shift=-1, axis=2)
+            mask_xp_ = (mask_ - mask_xp_)*mask_
+            mask_xm_ = (mask_ - mask_xm_)*mask_
+            self.mask_xp = mask_xp_[:,:,:-1]
+            self.mask_xm = mask_xm_[:,:,:-1]
         
         self.mask_zp = self.mask_zp.astype(bool)
         self.mask_zm = self.mask_zm.astype(bool)
