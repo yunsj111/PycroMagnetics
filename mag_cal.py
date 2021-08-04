@@ -1,14 +1,15 @@
-import pymag as ppm
-import mag_visualize as pmv
-import magmatlib as mml
+from . import pymag as ppm
+from . import mag_visualize as pmv
+from . import magmatlib as mml
 import time
+import numpy as np
 
 def start_calculation(evol=None, name=None, 
                       total_step=1000000,
                       log_step=1000,
                       early_stop=True,
                       conv_error_criteria=5e-5,
-                      conv_error_tolerance=10
+                      conv_error_tolerance=10,
                       verbose=0):
 
     # Set Logger

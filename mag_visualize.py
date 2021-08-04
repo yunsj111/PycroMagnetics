@@ -1,7 +1,7 @@
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-def show_mask(magnet, figsize=(5,5), fontsize=100):
+def show_mask(magnet, figsize=(5,5), fontsize=100, save=False, img_dir=None):
     total_nz = magnet.mask.shape[0]
     d1 = total_nz // 5
     d2 = total_nz % 5
@@ -13,8 +13,10 @@ def show_mask(magnet, figsize=(5,5), fontsize=100):
         sns.heatmap(magnet.mask[i].tolist(), cmap='gray', vmin=-1,vmax=1, cbar=False, square=True, yticklabels=False, xticklabels=False).invert_yaxis()
         plt.title('nz : {}/{}'.format(i+1,total_nz), fontdict={'size': fontsize})
     plt.show()
+    if save:
+        plt.savefig(img_dir)
     
-def show_MagProperties(mag_property, vmin=None, vmax=None,figsize=(5,5), fontsize=100, shrink=0.8):
+def show_MagProperties(mag_property, vmin=None, vmax=None,figsize=(5,5), fontsize=100, shrink=0.8, save=False, img_dir=None):
     total_nz = mag_property.shape[0]
     d1 = total_nz // 5
     d2 = total_nz % 5
@@ -29,10 +31,14 @@ def show_MagProperties(mag_property, vmin=None, vmax=None,figsize=(5,5), fontsiz
         plt.subplot(d1,5,i+1)
         sns.heatmap(mag_property[i].tolist(), cmap='RdBu', vmin=vmin, vmax=vmax, cbar=True, square=True, yticklabels=False, xticklabels=False, cbar_kws={"shrink": shrink}).invert_yaxis()
         plt.title('nz : {}/{}'.format(i+1,total_nz), fontdict={'size': fontsize})
-    plt.show()
+    
+    if save:
+        plt.savefig(img_dir)
+    else:
+        plt.show()
     
     
-def show_MagProperties_arrow(arrow_x=None, arrow_y=None, figsize=50):
+def show_MagProperties_arrow(arrow_x=None, arrow_y=None, figsize=50, save=False, img_dir=None):
     height, width = arrow_x.shape
     height /= width 
     height *= figsize
@@ -40,3 +46,5 @@ def show_MagProperties_arrow(arrow_x=None, arrow_y=None, figsize=50):
     plt.figure(figsize=(width, height),)
     plt.quiver(arrow_x.tolist(), arrow_y.tolist(), scale_units='xy')
     plt.show()
+    if save:
+        plt.savefig(img_dir, dpi=600)
