@@ -1,3 +1,5 @@
+import math
+
 class material(object):
     def __init__(self):
         # Units
@@ -66,6 +68,29 @@ class Ni_PolyCrystal(material):
         # Structural properties 
         self.thetaK = 0          # [unit : deg]
         self.phiK = 0            # [unit : deg]
+
+        # Spin dynamics properties
+        self.gamma = 1.76*10**7  # [unit : Oe^-1 s^-1]
+        self.alpha = 10          # [unit : dimensionless]
+        self.DDMI = 0            # [unit : erg / cm^2]
+
+        # Thermal state
+        self.Temp = 300          # [unit : K]
+
+class Ni_Preferred111PolyCrystal(material):
+    def __init__(self):
+        super(Ni_Preferred111PolyCrystal, self).__init__()
+        
+        # Magnetic properties
+        self.Ms = 484            # [unit : emu/cc]
+        self.Aex = 1.05*10**-6   # [unit : erg/cm]
+        self.K1 = -5*10**4       # [unit : erg/cc]
+        self.K2 = -2*10**4       # [unit : erg/cc]
+        self.Ku = 0              # [unit : erg / cc]
+
+        # Structural properties 
+        self.thetaK = -math.atan(math.sqrt(2))*(180/math.pi)          # [unit : deg]
+        self.phiK = 45           # [unit : deg]
 
         # Spin dynamics properties
         self.gamma = 1.76*10**7  # [unit : Oe^-1 s^-1]

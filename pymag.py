@@ -46,6 +46,44 @@ def MatrixCrossProduct(Mat1, Mat2):
     Mat3[2] = Mat1[0]*Mat2[1]-Mat1[1]*Mat2[0]
     return Mat3
 
+def MatrixDotProduct(Mat1, Mat2):
+    """
+    Returns the dot products of Mat1 and Mat2.
+    :param:
+        - Mat1        - Required  :  5D matrix with shape (3,3,nz,ny,nx). 
+        - Mat2        - Required  :  5D matrix with shape (3,1,nz,ny,nx).
+    :return: 
+        - Mat3                    :  5D matrix with shape (3,1,nz,ny,nx).
+    """
+    Mat3 = np.zeros_like(Mat2)
+    Mat3[0] = Mat1[0,0]*Mat2[0,0]+Mat1[0,1]*Mat2[1,0]+Mat1[0,2]*Mat2[2,0]
+    Mat3[1] = Mat1[1,0]*Mat2[0,0]+Mat1[1,1]*Mat2[1,0]+Mat1[1,2]*Mat2[2,0]
+    Mat3[2] = Mat1[2,0]*Mat2[0,0]+Mat1[2,1]*Mat2[1,0]+Mat1[2,2]*Mat2[2,0]
+    return Mat3
+
+def get_rotM(angle=45, axis=0):
+    angle *= np.pi /180
+    rotM = np.zeros(shape=(3,3,angle.shape[0],angle.shape[1],angle.shape[2]))
+    if axis==0:
+       rotM[2,2] = 1
+       rotM[0,0] = np.cos(angle)
+       rotM[0,1] = -np.sin(angle)
+       rotM[1,0] = np.sin(angle)
+       rotM[1,1] = np.cos(angle)
+    if axis==1:
+       rotM[1,1] = 1
+       rotM[0,0] = np.cos(angle)
+       rotM[0,2] = np.sin(angle)
+       rotM[2,0] = -np.sin(angle)
+       rotM[2,2] = np.cos(angle)
+    if axis==2:
+       rotM[0,0] = 1
+       rotM[1,1] = np.cos(angle)
+       rotM[1,2] = -np.sin(angle)
+       rotM[2,1] = np.sin(angle)
+       rotM[2,2] = np.cos(angle)
+    return rotM
+
 def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█'):
     """
     Call in a loop to create terminal progress bar
@@ -962,6 +1000,7 @@ class Evolver():
     """
     def __init__(self, magnet=None, tstep=10**-15, 
                  uniaxial_anisotropy_field=True,
+                 cubic_anisotropy_field=False,
                  exchang_field=True,
                  DMI_field=False,
                  demag_field=True,
@@ -992,6 +1031,7 @@ class Evolver():
         self.time = 0
 
         self.uniaxial_anisotropy_field = uniaxial_anisotropy_field
+        self.cubic_anisotropy_field = cubic_anisotropy_field
         self.exchang_field = exchang_field
         self.external_field = external_field
         self.DMI_field = DMI_field
@@ -1053,7 +1093,48 @@ class Evolver():
         self.hux = Hu_ * np.sin(thetaK_)*np.cos(phiK_)
         self.huy = Hu_ * np.sin(thetaK_)*np.sin(phiK_)
         self.huz = Hu_ * np.cos(thetaK_)
-
+    
+    def Hcubicanisotropy(self):
+        """
+        Calculate cubic anisotropy field.
+        """
+        mx_ = self.magnet.mx
+        my_ = self.magnet.my
+        mz_ = self.magnet.mz
+        
+        K1_ = self.magnet.K1
+        K2_ = self.magnet.K2
+        thetaK_ = self.magnet.thetaK*degree
+        phiK_ = self.magnet.phiK*degree
+        
+        rot1 = get_rotM(angle=phiK_, axis=0)
+        rot2 = get_rotM(angle=thetaK_, axis=1)
+        
+        x_hat = np.zeros(shape=(3,1,thetaK_.shape[0],thetaK_.shape[1],thetaK_.shape[2]))
+        x_hat[0] = 1
+        y_hat = np.zeros(shape=(3,1,thetaK_.shape[0],thetaK_.shape[1],thetaK_.shape[2]))
+        y_hat[1] = 1
+        z_hat = np.zeros(shape=(3,1,thetaK_.shape[0],thetaK_.shape[1],thetaK_.shape[2]))
+        z_hat[2] = 1
+        
+        u1_hat = MatrixDotProduct(rot2, MatrixDotProduct(rot1, x_hat))
+        u2_hat = MatrixDotProduct(rot2, MatrixDotProduct(rot1, y_hat))
+        u3_hat = MatrixDotProduct(rot2, MatrixDotProduct(rot1, z_hat))
+        
+        dir_vec_alpha = u1_hat[0] * mx_ + u1_hat[1] * my_ + u1_hat[2] * mz_
+        dir_vec_beta  = u2_hat[0] * mx_ + u2_hat[1] * my_ + u2_hat[2] * mz_
+        dir_vec_gamma = u3_hat[0] * mx_ + u3_hat[1] * my_ + u3_hat[2] * mz_
+        
+        Hcubic_u1 = -2 * K1_ / (self.magnet.Ms + 10**-10) * self.magnet.mask * dir_vec_alpha**3
+        Hcubic_u2 = -2 * K1_ / (self.magnet.Ms + 10**-10) * self.magnet.mask * dir_vec_beta**3
+        Hcubic_u3 = -2 * K1_ / (self.magnet.Ms + 10**-10) * self.magnet.mask * dir_vec_gamma**3
+        
+        Hcubic = Hcubic_u1 * u1_hat + Hcubic_u2 * u2_hat + Hcubic_u3 * u3_hat
+        
+        self.hcubicx = Hcubic[0,0]
+        self.hcubicy = Hcubic[1,0]
+        self.hcubicz = Hcubic[2,0]
+    
     def Hexchange(self):
         """
         Calculate exchange field.
@@ -1200,6 +1281,13 @@ class Evolver():
             self.heffx_ += self.hux
             self.heffy_ += self.huy
             self.heffz_ += self.huz
+        
+        # Add hcubic
+        if self.cubic_anisotropy_field:
+            self.Hcubicanisotropy()
+            self.heffx_ += self.hcubicx
+            self.heffy_ += self.hcubicy
+            self.heffz_ += self.hcubicz
         
         # Add hex
         if self.exchang_field:
