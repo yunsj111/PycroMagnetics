@@ -61,27 +61,26 @@ def MatrixDotProduct(Mat1, Mat2):
     Mat3[2] = Mat1[2,0]*Mat2[0,0]+Mat1[2,1]*Mat2[1,0]+Mat1[2,2]*Mat2[2,0]
     return Mat3
 
-def get_rotM(angle=45, axis=0):
-    angle *= np.pi /180
+def get_rotM(angle=math.pi/2, axis=0):
     rotM = np.zeros(shape=(3,3,angle.shape[0],angle.shape[1],angle.shape[2]))
     if axis==0:
-       rotM[2,2] = 1
-       rotM[0,0] = np.cos(angle)
-       rotM[0,1] = -np.sin(angle)
-       rotM[1,0] = np.sin(angle)
-       rotM[1,1] = np.cos(angle)
+        rotM[2,2] = 1
+        rotM[0,0] = np.cos(angle)
+        rotM[0,1] = -np.sin(angle)
+        rotM[1,0] = np.sin(angle)
+        rotM[1,1] = np.cos(angle)
     if axis==1:
-       rotM[1,1] = 1
-       rotM[0,0] = np.cos(angle)
-       rotM[0,2] = np.sin(angle)
-       rotM[2,0] = -np.sin(angle)
-       rotM[2,2] = np.cos(angle)
+        rotM[1,1] = 1
+        rotM[0,0] = np.cos(angle)
+        rotM[0,2] = np.sin(angle)
+        rotM[2,0] = -np.sin(angle)
+        rotM[2,2] = np.cos(angle)
     if axis==2:
-       rotM[0,0] = 1
-       rotM[1,1] = np.cos(angle)
-       rotM[1,2] = -np.sin(angle)
-       rotM[2,1] = np.sin(angle)
-       rotM[2,2] = np.cos(angle)
+        rotM[0,0] = 1
+        rotM[1,1] = np.cos(angle)
+        rotM[1,2] = -np.sin(angle)
+        rotM[2,1] = np.sin(angle)
+        rotM[2,2] = np.cos(angle)
     return rotM
 
 def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█'):
@@ -471,7 +470,7 @@ class Ferromagnet(MagneticObject):
     """
     Ferromagnet class.
     """
-    def __init__(self, **kwargs):
+    def __init__(self, crystal_x_random=False, crystal_y_random=False, crystal_z_random=False, **kwargs):
         """
         Initialize a ferromagnet object.
         In this stage, the mask of the ferromagnet is not defined.
@@ -523,6 +522,12 @@ class Ferromagnet(MagneticObject):
         self.K2 = 0
         self.DDMI = 0
         self.Temp = 0
+        if crystal_x_random:
+            self.crystal_x_random=True
+        if crystal_y_random:
+            self.crystal_y_random=True
+        if crystal_z_random:
+            self.crystal_z_random=True
 
     # Saturation magnetization
     @property
@@ -1094,7 +1099,7 @@ class Evolver():
         self.huy = Hu_ * np.sin(thetaK_)*np.sin(phiK_)
         self.huz = Hu_ * np.cos(thetaK_)
     
-    def Hcubicanisotropy(self):
+    def Hcubicanisotropy(self, x_random=False, y_random=False, z_random=False, random_state=42):
         """
         Calculate cubic anisotropy field.
         """
@@ -1104,8 +1109,9 @@ class Evolver():
         
         K1_ = self.magnet.K1
         K2_ = self.magnet.K2
-        thetaK_ = self.magnet.thetaK*degree
-        phiK_ = self.magnet.phiK*degree
+        thetaK_ = self.magnet.thetaK * degree
+        phiK_ = self.magnet.phiK * degree
+        
         
         rot1 = get_rotM(angle=phiK_, axis=0)
         rot2 = get_rotM(angle=thetaK_, axis=1)
@@ -1121,16 +1127,68 @@ class Evolver():
         u2_hat = MatrixDotProduct(rot2, MatrixDotProduct(rot1, y_hat))
         u3_hat = MatrixDotProduct(rot2, MatrixDotProduct(rot1, z_hat))
         
-        dir_vec_alpha = u1_hat[0] * mx_ + u1_hat[1] * my_ + u1_hat[2] * mz_
-        dir_vec_beta  = u2_hat[0] * mx_ + u2_hat[1] * my_ + u2_hat[2] * mz_
-        dir_vec_gamma = u3_hat[0] * mx_ + u3_hat[1] * my_ + u3_hat[2] * mz_
+        if x_random:
+            np.random.seed(random_state)
+            rand_angle = np.random.rand(self.magnet.nz, self.magnet.ny, self.magnet.nx)* 2 * np.pi
+            ranM = get_rotM(angle=rand_angle, axis=2)
+            u1_hat = MatrixDotProduct(ranM, u1_hat)
+            u2_hat = MatrixDotProduct(ranM, u2_hat)
+            u3_hat = MatrixDotProduct(ranM, u3_hat)
+            print('random_')
+        if y_random:
+            np.random.seed(random_state+1)
+            rand_angle = np.random.rand(self.magnet.nz, self.magnet.ny, self.magnet.nx)* 2 * np.pi
+            ranM = get_rotM(angle=rand_angle, axis=1)
+            u1_hat = MatrixDotProduct(ranM, u1_hat)
+            u2_hat = MatrixDotProduct(ranM, u2_hat)
+            u3_hat = MatrixDotProduct(ranM, u3_hat)
+            print('random_')
+        if z_random:
+            np.random.seed(random_state+2)
+            rand_angle = np.random.rand(self.magnet.nz, self.magnet.ny, self.magnet.nx)* 2 * np.pi
+            ranM = get_rotM(angle=rand_angle, axis=0)
+            u1_hat = MatrixDotProduct(ranM, u1_hat)
+            u2_hat = MatrixDotProduct(ranM, u2_hat)
+            u3_hat = MatrixDotProduct(ranM, u3_hat)
+            print('random_')
         
-        Hcubic_u1 = -2 * K1_ / (self.magnet.Ms + 10**-10) * self.magnet.mask * dir_vec_alpha**3
-        Hcubic_u2 = -2 * K1_ / (self.magnet.Ms + 10**-10) * self.magnet.mask * dir_vec_beta**3
-        Hcubic_u3 = -2 * K1_ / (self.magnet.Ms + 10**-10) * self.magnet.mask * dir_vec_gamma**3
+        
+        
+#         print('u1_hat : ', u1_hat[:,0,0,0,0])
+#         print('u2_hat : ', u2_hat[:,0,0,0,0])
+#         print('u3_hat : ', u3_hat[:,0,0,0,0])
+#         print(mx_.shape)
+        
+        dir_vec_alpha = u1_hat[0,0] * mx_ + u1_hat[1,0] * my_ + u1_hat[2,0] * mz_
+        dir_vec_beta  = u2_hat[0,0] * mx_ + u2_hat[1,0] * my_ + u2_hat[2,0] * mz_
+        dir_vec_gamma = u3_hat[0,0] * mx_ + u3_hat[1,0] * my_ + u3_hat[2,0] * mz_
+        
+#         print(dir_vec_alpha.shape)
+#         print('dir_vec_alpha : ', dir_vec_alpha[0,0,0])
+#         print('dir_vec_beta : ', dir_vec_beta[0,0,0])
+#         print('dir_vec_gamma : ', dir_vec_gamma[0,0,0])
+        
+        Hcubic_u1 = +2 * K1_ / (self.magnet.Ms + 10**-10) * self.magnet.mask * dir_vec_alpha**3 \
+                    -2 * K2_ / (self.magnet.Ms + 10**-10) * self.magnet.mask * dir_vec_alpha * dir_vec_beta**2 * dir_vec_gamma**2
+        Hcubic_u2 = +2 * K1_ / (self.magnet.Ms + 10**-10) * self.magnet.mask * dir_vec_beta**3  \
+                    -2 * K2_ / (self.magnet.Ms + 10**-10) * self.magnet.mask * dir_vec_alpha**2 * dir_vec_beta * dir_vec_gamma**2
+        Hcubic_u3 = +2 * K1_ / (self.magnet.Ms + 10**-10) * self.magnet.mask * dir_vec_gamma**3 \
+                    -2 * K2_ / (self.magnet.Ms + 10**-10) * self.magnet.mask * dir_vec_alpha**2 * dir_vec_beta**2 * dir_vec_gamma
+            
+#         print('Hcubic_u1 : ', Hcubic_u1[0,0,0])
+#         print('Hcubic_u2 : ', Hcubic_u2[0,0,0])
+#         print('Hcubic_u3 : ', Hcubic_u3[0,0,0])
+#         print(Hcubic_u1.shape)
+#         print(u1_hat.shape)
         
         Hcubic = Hcubic_u1 * u1_hat + Hcubic_u2 * u2_hat + Hcubic_u3 * u3_hat
+#         print(Hcubic.shape)
+#         print('Hcubic : ', Hcubic[:,0,0,0,0])
+#         print('Hcubicx : ', Hcubic[0,0,0,0,0])
+#         print('Hcubicy : ', Hcubic[1,0,0,0,0])
+#         print('Hcubicz : ', Hcubic[2,0,0,0,0])
         
+#         print(Hcubic[0,0].shape)
         self.hcubicx = Hcubic[0,0]
         self.hcubicy = Hcubic[1,0]
         self.hcubicz = Hcubic[2,0]
@@ -1277,7 +1335,10 @@ class Evolver():
             
         # Add hu
         if self.uniaxial_anisotropy_field:
-            self.Huniaxialanisotropy()
+            self.Huniaxialanisotropy(x_random=self.magnet.crystal_x_random, 
+                                     y_random=self.magnet.crystal_y_random, 
+                                     z_random=self.magnet.crystal_z_random, 
+                                     random_state=self.random_state)
             self.heffx_ += self.hux
             self.heffy_ += self.huy
             self.heffz_ += self.huz
